@@ -113,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
       localBadge: 'LOCAL',
       notTelegram: 'Open Telegram Web first',
       refreshTelegram: 'Refresh Telegram and try again',
+      reconnecting: 'Reconnecting to Telegram…',
+      reconnected: 'Connection restored',
       startFailed: 'Could not start collection',
       openChannel: 'Make sure a channel is open',
       noData: 'No data collected yet',
@@ -179,6 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
       localBadge: 'ЛОКАЛЬНО',
       notTelegram: 'Сначала откройте Telegram Web',
       refreshTelegram: 'Обновите страницу Telegram и повторите',
+      reconnecting: 'Переподключаемся к Telegram…',
+      reconnected: 'Соединение восстановлено',
       startFailed: 'Не удалось начать сбор',
       openChannel: 'Убедитесь, что открыт канал',
       noData: 'Данные ещё не собраны',
@@ -879,10 +883,25 @@ footer{text-align:center;margin-top:22px;font-size:10px;color:rgba(255,255,255,0
     currentTabId = tab.id;
     try {
       return await chrome.tabs.sendMessage(tab.id, { action });
-    } catch {
-      setStatus('error', t('refreshTelegram'));
-      showToast('error', t('refreshTelegram'));
-      return false;
+    } catch (firstError) {
+      // Reloading an unpacked extension invalidates content scripts in tabs
+      // that were already open. Re-inject the current script and retry once so
+      // users do not have to discover that a Telegram page refresh is needed.
+      try {
+        setStatus('active', t('reconnecting'));
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['content.js'],
+        });
+        const response = await chrome.tabs.sendMessage(tab.id, { action });
+        showToast('success', t('reconnected'), 2200);
+        return response;
+      } catch (reconnectError) {
+        console.warn('Telegram Collector reconnect failed', firstError, reconnectError);
+        setStatus('error', t('refreshTelegram'));
+        showToast('error', t('refreshTelegram'));
+        return false;
+      }
     }
   }
 

@@ -1,5 +1,13 @@
-let isCollectionMode = false;
-const collectedPosts = new Map();
+var isCollectionMode = false;
+var collectedPosts = new Map();
+var telegramCollectorMessageSelector = '.bubble[data-mid], [data-message-id], .tgme_widget_message[data-post]';
+
+function getMessageId(el) {
+  return el.getAttribute('data-message-id')
+    || el.getAttribute('data-mid')
+    || el.getAttribute('data-id')
+    || el.getAttribute('data-post');
+}
 
 function parseCompactNumber(value) {
   if (value == null) return null;
@@ -24,56 +32,70 @@ function parseCompactNumber(value) {
 }
 
 function absorbElement(el) {
-  const id = el.getAttribute('data-message-id') || el.getAttribute('data-id');
+  const id = getMessageId(el);
   if (!id) return;
   const data = extractPostData(el);
   if (!data.text && !data.hasMedia && data.totalReactions === 0) return;
   collectedPosts.set(id, data);
 }
 
-const domObserver = new MutationObserver(mutations => {
+if (globalThis.__telegramCollectorObserver) {
+  try { globalThis.__telegramCollectorObserver.disconnect(); } catch {}
+}
+
+var domObserver = new MutationObserver(mutations => {
   if (!isCollectionMode) return;
   for (const mutation of mutations) {
     for (const node of mutation.addedNodes) {
       if (node.nodeType !== 1) continue;
       const messages = new Set();
-      if (node.matches('[data-message-id]')) messages.add(node);
-      const parentMessage = node.closest('[data-message-id]');
+      if (node.matches(telegramCollectorMessageSelector)) messages.add(node);
+      const parentMessage = node.closest(telegramCollectorMessageSelector);
       if (parentMessage) messages.add(parentMessage);
-      node.querySelectorAll('[data-message-id]').forEach(message => messages.add(message));
+      node.querySelectorAll(telegramCollectorMessageSelector).forEach(message => messages.add(message));
       messages.forEach(absorbElement);
     }
   }
 });
 
 domObserver.observe(document.body, { childList: true, subtree: true });
+globalThis.__telegramCollectorObserver = domObserver;
 
 function extractPostData(messageEl) {
-  const msgId = messageEl.getAttribute('data-message-id') || messageEl.getAttribute('data-id');
+  const msgId = getMessageId(messageEl);
 
   // 1. TEXT
-  const textEl = messageEl.querySelector('.text-content');
+  const textEl = messageEl.querySelector('.text-content, .bubble-content .message, .message');
   const text = textEl ? textEl.innerText.trim() : '';
 
   // 2. VIEWS & SHARES
   let views = null;
   let shares = null;
-  const viewsEl = messageEl.querySelector('.message-views');
+  const viewsEl = messageEl.querySelector('.message-views, .post-views');
   if (viewsEl) {
-    const viewsText = viewsEl.getAttribute('title') || viewsEl.innerText;
+    const timeMetaEl = viewsEl.closest?.('.time-inner') || messageEl.querySelector('.time-inner');
+    const viewsText = timeMetaEl?.getAttribute('title')
+      || viewsEl.getAttribute('title')
+      || viewsEl.innerText
+      || viewsEl.textContent
+      || '';
     const viewsMatch = viewsText.match(/Views:\s*([\d,.]+\s*[KMB]?)/i);
     if (viewsMatch) views = parseCompactNumber(viewsMatch[1]);
     const sharesMatch = viewsText.match(/Shares:\s*([\d,.]+\s*[KMB]?)/i);
     if (sharesMatch) shares = parseCompactNumber(sharesMatch[1]);
-    if (views === null && viewsEl.innerText) {
-      views = parseCompactNumber(viewsEl.innerText);
+    if (views === null) {
+      views = parseCompactNumber(viewsEl.innerText || viewsEl.textContent);
     }
   }
 
   // 3. TIME
   let time = null;
-  const timeEl = messageEl.querySelector('.message-time');
-  if (timeEl) time = timeEl.innerText.trim();
+  const timeEl = messageEl.querySelector('.message-time, .time-inner, .time');
+  if (timeEl) {
+    const timeText = (timeEl.innerText || timeEl.textContent || '').trim();
+    const timeMatches = timeText.match(/\b\d{1,2}:\d{2}\b/g);
+    time = timeMatches?.at(-1) || timeText;
+  }
 
   // 4. REACTIONS
   const reactions = [];
@@ -104,7 +126,7 @@ function extractPostData(messageEl) {
 
   // 5. LINKS
   const links = [];
-  messageEl.querySelectorAll('a.text-entity-link').forEach(link => {
+  messageEl.querySelectorAll('a.text-entity-link, .message a[href]').forEach(link => {
     const linkText = link.innerText.trim();
     const href = link.getAttribute('href');
     if (linkText) {
@@ -152,11 +174,10 @@ function extractPostData(messageEl) {
 
 function collectAllPosts() {
   if (isCollectionMode) {
-    let elements = document.querySelectorAll('.tgme_widget_message');
-    if (elements.length === 0) elements = document.querySelectorAll('[data-message-id]');
+    const elements = document.querySelectorAll(telegramCollectorMessageSelector);
 
     Array.from(elements).forEach(el => {
-      const id = el.getAttribute('data-message-id') || el.getAttribute('data-id');
+      const id = getMessageId(el);
       if (!id) return;
       const data = extractPostData(el);
       if (!data.text && !data.hasMedia && data.totalReactions === 0) return;
@@ -225,7 +246,11 @@ function convertToCSV(posts) {
   return [headers, ...rows].map(row => row.join(',')).join('\n');
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+if (globalThis.__telegramCollectorMessageHandler) {
+  try { chrome.runtime.onMessage.removeListener(globalThis.__telegramCollectorMessageHandler); } catch {}
+}
+
+var telegramCollectorMessageHandler = (request, sender, sendResponse) => {
   if (request.action === 'getStatus') {
     const posts = collectAllPosts();
     sendResponse({ isCollecting: isCollectionMode, postCount: posts.length });
@@ -278,4 +303,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   return true;
-});
+};
+
+chrome.runtime.onMessage.addListener(telegramCollectorMessageHandler);
+globalThis.__telegramCollectorMessageHandler = telegramCollectorMessageHandler;

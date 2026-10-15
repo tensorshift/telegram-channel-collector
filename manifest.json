@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Telegram Channel Collector",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Collect and analyze Telegram channel posts locally, without servers or external services",
-  "permissions": ["activeTab", "downloads"],
+  "permissions": ["activeTab", "downloads", "scripting"],
   "host_permissions": ["https://web.telegram.org/*"],
   "icons": {
     "16": "icon16.png",

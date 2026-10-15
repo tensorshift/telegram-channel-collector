@@ -33,7 +33,7 @@ const messageElement = {
     return name === 'data-message-id' ? 'channel/42' : null;
   },
   querySelector(selector) {
-    return selector === '.text-content' ? textElement : null;
+    return selector.includes('.text-content') ? textElement : null;
   },
   querySelectorAll(selector) {
     return selector === '.message-reaction' ? [reactionButton] : [];
@@ -42,8 +42,12 @@ const messageElement = {
 
 const context = {
   __messageElement: messageElement,
+  __messageElements: [],
   console,
-  document: { body: {} },
+  document: {
+    body: {},
+    querySelectorAll() { return context.__messageElements; },
+  },
   MutationObserver: class {
     observe() {}
   },
@@ -56,7 +60,7 @@ const context = {
 };
 
 vm.createContext(context);
-vm.runInContext(`${contentScript}\nthis.__extractPostData = extractPostData;\nthis.__absorbElement = absorbElement;\nthis.__getCollectedPost = id => collectedPosts.get(id);`, context);
+vm.runInContext(`${contentScript}\nthis.__extractPostData = extractPostData;\nthis.__absorbElement = absorbElement;\nthis.__collectAllPosts = collectAllPosts;\nthis.__getCollectedPost = id => collectedPosts.get(id);`, context);
 
 reactionCount = '1';
 let post = context.__extractPostData(messageElement);
@@ -78,5 +82,40 @@ reactionCount = '7';
 context.__absorbElement(messageElement);
 assert.equal(context.__getCollectedPost('channel/42').totalReactions, 7);
 
+const modernTimeMeta = {
+  getAttribute(name) {
+    return name === 'title' ? 'Views: 12,345\nShares: 67' : null;
+  },
+};
+const modernViews = {
+  innerText: '12.3K',
+  textContent: '12.3K',
+  getAttribute() { return null; },
+  closest(selector) { return selector === '.time-inner' ? modernTimeMeta : null; },
+};
+const modernMessage = {
+  getAttribute(name) {
+    return name === 'data-mid' ? '733' : null;
+  },
+  querySelector(selector) {
+    if (selector.includes('.bubble-content .message')) return { innerText: 'Current Telegram Web post' };
+    if (selector.includes('.post-views')) return modernViews;
+    if (selector.includes('.message-time')) return { innerText: '12.3K 14:30', textContent: '12.3K 14:30' };
+    return null;
+  },
+  querySelectorAll() { return []; },
+};
+
+context.__messageElements = [modernMessage];
+vm.runInContext('collectedPosts.clear(); isCollectionMode = true;', context);
+const modernPosts = context.__collectAllPosts();
+assert.equal(modernPosts.length, 1);
+assert.equal(modernPosts[0].id, '733');
+assert.equal(modernPosts[0].text, 'Current Telegram Web post');
+assert.equal(modernPosts[0].views, 12345);
+assert.equal(modernPosts[0].shares, 67);
+assert.equal(modernPosts[0].time, '14:30');
+
 console.log('Reaction parser: OK');
 console.log('Lazy-loaded reaction refresh: OK');
+console.log('Current Telegram Web markup: OK');
