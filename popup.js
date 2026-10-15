@@ -735,17 +735,17 @@ document.addEventListener('DOMContentLoaded', () => {
 <style>
 ${embeddedFont}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0d16;color:#e8e8e8;font-family:'Pixelify Sans',monospace;padding:28px 16px;font-weight:500}
+body{background:#0d0d16;color:#e8e8e8;font-family:'Bahnschrift','Trebuchet MS','Segoe UI',Arial,sans-serif;padding:28px 16px;font-weight:500}
 .wrap{max-width:780px;margin:0 auto}
 .hdr{text-align:center;padding:24px 20px 20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:16px}
-.hdr-logo{font-size:12px;font-weight:700;color:rgba(255,255,255,0.38);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
-.hdr-ch{font-size:25px;font-weight:700;margin-bottom:10px}
+.hdr-logo{font-family:'Pixelify Sans',monospace;font-size:12px;font-weight:700;color:rgba(255,255,255,0.38);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.hdr-ch{font-family:'Pixelify Sans',monospace;font-size:25px;font-weight:700;margin-bottom:10px}
 .hdr-meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .hdr-meta span{background:rgba(255,255,255,0.07);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.55)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:16px 18px}
 .full{grid-column:1/-1}
-.ch{font-size:12px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px}
+.ch{font-family:'Pixelify Sans',monospace;font-size:12px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px}
 .fr-body{display:flex;align-items:center;gap:16px;margin-bottom:10px}
 .fr-ring{width:80px;height:80px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:conic-gradient(${riskColor} ${deg}deg,#1e1e32 ${deg}deg)}
 .fr-inner{width:60px;height:60px;border-radius:50%;background:#0d0d16;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:${riskColor}}

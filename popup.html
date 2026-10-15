@@ -12,12 +12,17 @@
       font-display: swap;
     }
 
+    :root {
+      --font-display: 'Pixelify Sans', monospace;
+      --font-ui: 'Bahnschrift', 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       width: 380px;
       min-height: 0;
-      font-family: 'Pixelify Sans', monospace;
+      font-family: var(--font-display);
       background: #07111f;
       overflow: hidden;
       position: relative;
@@ -542,6 +547,26 @@
     .channel-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 5px; line-height: 1.3; }
     .channel-meta { font-size: 10.5px; color: rgba(255,255,255,0.4); }
     .channel-meta-sep { margin: 0 5px; opacity: 0.4; }
+
+    /* Functional copy stays crisp; display elements keep the pixel identity. */
+    .status-badge,
+    .counter-display,
+    .btn,
+    .tip,
+    .toast,
+    .lang-prompt,
+    .lang-prompt-sub,
+    .lang-btn,
+    .step-card,
+    .intro-btn,
+    .lang-switch-btn,
+    .header-lang-btn,
+    .results-panel,
+    .btn-back,
+    .btn-export,
+    #tipBox {
+      font-family: var(--font-ui);
+    }
 
     /* ── Compact pixel UI refinement ───────────────── */
     .card-wrapper { margin: 12px; border-radius: 16px; }
