@@ -1,0 +1,9 @@
+.env
+.env.example
+ANALYZER/
+*.json
+*.png
+*.md
+.git
+__pycache__
+*.pyc

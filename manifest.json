@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Telegram Channel Collector",
+  "version": "2.0.0",
+  "description": "Collect and analyze Telegram channel posts locally, without servers or external services",
+  "permissions": ["activeTab", "downloads"],
+  "host_permissions": ["https://web.telegram.org/*"],
+  "action": {
+    "default_title": "Telegram Channel Collector",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://web.telegram.org/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

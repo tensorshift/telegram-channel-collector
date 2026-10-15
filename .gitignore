@@ -1,0 +1,25 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.crx
+
+# Collected Telegram data must never be committed
+telegram_analytics_*.json
+tg_report_*.html
+
+# Generated and local-only files
+release/telegram-channel-collector-standalone/
+release/ui-preview.png
+.DS_Store
+Thumbs.db
+*.log
+
+# Tooling caches
+node_modules/
+.cache/
+.tmp/
+

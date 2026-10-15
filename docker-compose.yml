@@ -1,0 +1,15 @@
+services:
+  analytics-bot:
+    build: .
+    container_name: telegram-analytics-bot
+    env_file: .env
+    restart: unless-stopped
+
+  analytics-api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: telegram-analytics-api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
