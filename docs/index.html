@@ -1,75 +1,75 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#081521">
-  <meta name="description" content="Автономное расширение для локального сбора и анализа Telegram-каналов. Без сервера, Docker, Python и API-ключей.">
+  <meta name="description" content="A standalone Chrome and Edge extension for collecting and analyzing Telegram channels locally. No server, Docker, Python, or API keys.">
   <meta property="og:title" content="Telegram Channel Collector">
-  <meta property="og:description" content="Собирайте и анализируйте Telegram-каналы прямо в браузере. Все данные остаются на вашем устройстве.">
+  <meta property="og:description" content="Collect and analyze Telegram channels right in your browser. Your data stays on your device.">
   <meta property="og:type" content="website">
-  <title>Telegram Channel Collector — локальная аналитика каналов</title>
+  <title>Telegram Channel Collector — local channel analytics</title>
   <link rel="icon" type="image/png" href="assets/icon48.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip-link" href="#main">К содержанию</a>
+  <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="site-header">
-    <a class="brand" href="#top" aria-label="Telegram Channel Collector — наверх">
+    <a class="brand" href="#top" aria-label="Telegram Channel Collector — back to top">
       <span class="brand-mark" aria-hidden="true">↗</span>
       <span>
         <strong>Telegram Collector</strong>
         <small>LOCAL ANALYTICS</small>
       </span>
     </a>
-    <nav aria-label="Основная навигация">
-      <a href="#features">Возможности</a>
-      <a href="#install">Установка</a>
+    <nav aria-label="Main navigation">
+      <a href="#features">Features</a>
+      <a href="#install">Installation</a>
       <a class="nav-github" data-repo-link href="#">GitHub</a>
     </nav>
     <a class="button button-small" href="downloads/telegram-channel-collector-standalone.zip" download>
-      Скачать <span aria-hidden="true">↓</span>
+      Download <span aria-hidden="true">↓</span>
     </a>
   </header>
 
   <main id="main">
     <section class="hero" id="top">
       <div class="hero-copy">
-        <div class="eyebrow"><span class="live-dot"></span> 100% локально в браузере</div>
-        <h1>Telegram-аналитика<br><span>без серверной возни.</span></h1>
-        <p class="hero-lead">Собирайте посты каналов, находите аномалии в просмотрах и реакциях и экспортируйте отчёты — без Docker, Python и API-ключей.</p>
+        <div class="eyebrow"><span class="live-dot"></span> 100% local in your browser</div>
+        <h1>Telegram analytics.<br><span>Minus the server setup.</span></h1>
+        <p class="hero-lead">Collect channel posts, spot anomalies in views and reactions, and export clear reports — without Docker, Python, or API keys.</p>
         <div class="hero-actions">
           <a class="button button-primary" href="downloads/telegram-channel-collector-standalone.zip" download>
-            Скачать расширение <span aria-hidden="true">↓</span>
+            Download extension <span aria-hidden="true">↓</span>
           </a>
-          <a class="button button-ghost" data-repo-link href="#">Исходный код <span aria-hidden="true">↗</span></a>
+          <a class="button button-ghost" data-repo-link href="#">View source <span aria-hidden="true">↗</span></a>
         </div>
-        <p class="download-note">Chrome / Edge · Manifest V3 · проверяемый исходный код</p>
+        <p class="download-note">Chrome / Edge · Manifest V3 · inspectable source code</p>
       </div>
 
-      <div class="product-stage" aria-label="Предпросмотр интерфейса расширения">
+      <div class="product-stage" aria-label="Extension interface preview">
         <div class="pixel-grid" aria-hidden="true"></div>
         <div class="extension-window">
           <div class="extension-top">
             <span class="mini-logo">↗</span>
             <span class="extension-title"><strong>Telegram Collector</strong><small>CHANNEL ANALYTICS</small></span>
             <span class="local-chip">LOCAL</span>
-            <span class="lang-chip">RU</span>
+            <span class="lang-chip">EN</span>
           </div>
-          <div class="status-line"><i></i> Готов к сбору</div>
+          <div class="status-line"><i></i> Ready to collect</div>
           <div class="counter-card">
-            <span>ПОСТОВ СОБРАНО</span>
+            <span>POSTS COLLECTED</span>
             <strong>64</strong>
             <b aria-hidden="true">▥</b>
           </div>
-          <div class="mini-button primary">↓ &nbsp; Начать сбор</div>
-          <div class="mini-button success">✓ &nbsp; Завершить и скачать</div>
-          <div class="mini-button accent">▥ &nbsp; Анализировать</div>
+          <div class="mini-button primary">↓ &nbsp; Start collection</div>
+          <div class="mini-button success">✓ &nbsp; Finish &amp; download</div>
+          <div class="mini-button accent">▥ &nbsp; Analyze</div>
           <div class="signal-row">
             <span><small>FRAUD SCORE</small><strong>18</strong></span>
             <span><small>ENGAGEMENT</small><strong>1.8%</strong></span>
-            <span><small>ПОСТОВ</small><strong>64</strong></span>
+            <span><small>POSTS</small><strong>64</strong></span>
           </div>
         </div>
         <div class="floating-tag tag-one">NO CLOUD</div>
@@ -77,59 +77,59 @@
       </div>
     </section>
 
-    <div class="ticker" aria-label="Ключевые свойства">
+    <div class="ticker" aria-label="Key properties">
       <div>
         <span>NO SERVER</span><i>◆</i><span>NO DOCKER</span><i>◆</i><span>NO API KEYS</span><i>◆</i><span>YOUR DATA STAYS LOCAL</span>
       </div>
     </div>
 
-    <section class="proof-strip" aria-label="Основные преимущества">
-      <article><strong>0</strong><span>внешних запросов<br>для анализа</span></article>
-      <article><strong>1</strong><span>архив для<br>установки</span></article>
-      <article><strong>6</strong><span>групп метрик<br>в отчёте</span></article>
-      <article><strong>∞</strong><span>каналов без<br>лимитов API</span></article>
+    <section class="proof-strip" aria-label="Key benefits">
+      <article><strong>0</strong><span>external requests<br>for analysis</span></article>
+      <article><strong>1</strong><span>archive to<br>install</span></article>
+      <article><strong>6</strong><span>metric groups<br>in each report</span></article>
+      <article><strong>∞</strong><span>channels without<br>API limits</span></article>
     </section>
 
     <section class="section" id="features">
       <div class="section-heading">
         <div>
-          <p class="kicker">[ ЧТО ВНУТРИ ]</p>
-          <h2>Не просто выгрузка.<br>Готовая картина канала.</h2>
+          <p class="kicker">[ WHAT'S INSIDE ]</p>
+          <h2>More than an export.<br>A clear channel overview.</h2>
         </div>
-        <p>Расширение превращает загруженные в Telegram Web посты в понятный локальный отчёт и показывает, на какие сигналы стоит обратить внимание.</p>
+        <p>The extension turns posts loaded in Telegram Web into a readable local report and highlights the signals worth a closer look.</p>
       </div>
 
       <div class="feature-grid">
         <article class="feature-card feature-wide">
           <div class="feature-number">01</div>
           <div>
-            <h3>Fraud score с объяснением</h3>
-            <p>Не просто число: каждый сработавший сигнал показывается отдельно — от подозрительно ровных просмотров до низкой энтропии реакций.</p>
+            <h3>Explained fraud score</h3>
+            <p>Not just a number: every triggered signal is shown separately, from unusually flat view counts to low reaction entropy.</p>
           </div>
-          <div class="score-demo" aria-label="Пример fraud score 18 из 100">
+          <div class="score-demo" aria-label="Example fraud score: 18 out of 100">
             <div class="score-ring"><span>18</span></div>
-            <div><strong>НИЗКИЙ РИСК</strong><div class="score-track"><i></i></div><small>Эвристическая оценка</small></div>
+            <div><strong>LOW RISK</strong><div class="score-track"><i></i></div><small>Heuristic estimate</small></div>
           </div>
         </article>
 
         <article class="feature-card">
           <div class="feature-number">02</div>
-          <h3>Просмотры и вовлечённость</h3>
-          <p>Среднее, медиана, коэффициент вариации, выбросы, ER, репосты и охват относительно подписчиков.</p>
+          <h3>Views and engagement</h3>
+          <p>Mean, median, coefficient of variation, outliers, engagement rate, forwards, and subscriber-relative reach.</p>
           <div class="bars" aria-hidden="true"><i style="--h:42%"></i><i style="--h:70%"></i><i style="--h:55%"></i><i style="--h:88%"></i><i style="--h:64%"></i><i style="--h:78%"></i><i style="--h:50%"></i><i style="--h:92%"></i></div>
         </article>
 
         <article class="feature-card">
           <div class="feature-number">03</div>
-          <h3>Реакции и расписание</h3>
-          <p>Разнообразие emoji, энтропия, пики публикаций и оценка регулярности постинга.</p>
+          <h3>Reactions and timing</h3>
+          <p>Emoji diversity, reaction entropy, publishing peaks, and posting consistency.</p>
           <div class="reaction-demo" aria-hidden="true"><span>🔥 31%</span><span>👍 24%</span><span>❤️ 19%</span></div>
         </article>
 
         <article class="feature-card">
           <div class="feature-number">04</div>
-          <h3>Два формата экспорта</h3>
-          <p>Полные сырые данные в JSON и автономный HTML-отчёт, который можно открыть или переслать без расширения.</p>
+          <h3>Two export formats</h3>
+          <p>Complete raw data in JSON and a standalone HTML report you can open or share without the extension.</p>
           <div class="file-demo"><span>.JSON</span><span>.HTML</span></div>
         </article>
       </div>
@@ -138,16 +138,16 @@
     <section class="section privacy-section">
       <div class="privacy-copy">
         <p class="kicker">[ PRIVACY BY DESIGN ]</p>
-        <h2>Данные канала не покидают ваш браузер.</h2>
-        <p>В расширении нет аналитических SDK, облачного API или скрытого сервера. Сбор, расчёты и создание отчёта происходят на устройстве пользователя.</p>
+        <h2>Your channel data never leaves the browser.</h2>
+        <p>There is no analytics SDK, cloud API, or hidden backend. Collection, calculations, and report generation all happen on your device.</p>
         <ul>
-          <li><span>✓</span> Нет регистрации и аккаунта</li>
-          <li><span>✓</span> Нет внешних API-запросов</li>
-          <li><span>✓</span> Только минимальные разрешения Chrome</li>
-          <li><span>✓</span> Исходный код доступен для проверки</li>
+          <li><span>✓</span> No registration or account</li>
+          <li><span>✓</span> No external API requests</li>
+          <li><span>✓</span> Only minimal Chrome permissions</li>
+          <li><span>✓</span> Source code available for inspection</li>
         </ul>
       </div>
-      <div class="terminal" aria-label="Сводка проверки приватности">
+      <div class="terminal" aria-label="Privacy audit summary">
         <div class="terminal-head"><span></span><span></span><span></span><b>privacy-check.log</b></div>
         <pre><em>$</em> scan extension
 
@@ -164,42 +164,65 @@
     <section class="section install-section" id="install">
       <div class="section-heading compact">
         <div>
-          <p class="kicker">[ УСТАНОВКА ]</p>
-          <h2>Три шага.<br>Никаких терминалов.</h2>
+          <p class="kicker">[ INSTALLATION ]</p>
+          <h2>Three simple steps.<br>No terminal required.</h2>
         </div>
-        <p>Chrome и Edge требуют один раз включить режим разработчика для расширений, которые не опубликованы в магазине.</p>
+        <p>Chrome requires Developer mode for extensions installed outside the Chrome Web Store. You only need to set it up once.</p>
       </div>
-      <ol class="steps">
-        <li><span>01</span><div><h3>Скачайте и распакуйте</h3><p>Архив содержит только готовое расширение и короткую инструкцию.</p></div></li>
-        <li><span>02</span><div><h3>Откройте расширения</h3><p><code>chrome://extensions</code> или <code>edge://extensions</code>, затем включите режим разработчика.</p></div></li>
-        <li><span>03</span><div><h3>Загрузите папку</h3><p>Нажмите «Загрузить распакованное» и выберите папку с <code>manifest.json</code>.</p></div></li>
-      </ol>
+      <div class="install-alert"><strong>Unzip it first.</strong> Chrome's <em>Load unpacked</em> button cannot open a ZIP file — it only accepts the extracted folder containing <code>manifest.json</code>.</div>
+      <div class="install-layout">
+        <ol class="steps">
+          <li>
+            <span>01</span>
+            <div><h3>Download, then unzip</h3><p><a href="downloads/telegram-channel-collector-standalone.zip" download>Download the extension ZIP</a> and extract it before continuing. Do not select the ZIP in Chrome.</p></div>
+          </li>
+          <li>
+            <span>02</span>
+            <div>
+              <h3>Open Chrome Extensions</h3>
+              <p class="address-row"><a class="protocol-link" href="chrome://extensions/">chrome://extensions</a><button type="button" data-copy-address="chrome://extensions">Copy address</button></p>
+              <p class="step-note">If Chrome blocks the direct link, paste the copied address into the address bar. Using Edge? Open <code>edge://extensions</code>.</p>
+            </div>
+          </li>
+          <li>
+            <span>03</span>
+            <div><h3>Enable and load the folder</h3><p>Turn on <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select the extracted folder containing <code>manifest.json</code> — not the ZIP file.</p></div>
+          </li>
+        </ol>
+
+        <div class="chrome-demo" aria-label="Chrome Extensions page showing Developer mode and Load unpacked">
+          <div class="chrome-demo-head">
+            <span class="chrome-mark" aria-hidden="true">◉</span>
+            <strong>Extensions</strong>
+            <span class="chrome-search">Search extensions</span>
+            <span class="developer-control">Developer mode <i aria-hidden="true"></i><b>2</b></span>
+          </div>
+          <div class="chrome-demo-actions">
+            <span class="load-unpacked">Load unpacked</span><b>3</b>
+            <span>Pack extension</span>
+            <span>Update</span>
+          </div>
+          <div class="chrome-demo-body">
+            <div class="chrome-sidebar"><strong>▣ &nbsp; My extensions</strong><span>⌨ &nbsp; Keyboard shortcuts</span></div>
+            <div class="chrome-empty"><strong>Choose your extracted extension folder</strong><span>The folder must contain manifest.json</span></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="cta-section">
       <div class="cta-pixel" aria-hidden="true">↗</div>
-      <p class="kicker">[ ГОТОВО К РАБОТЕ ]</p>
-      <h2>Посмотрите на канал<br>как на данные.</h2>
-      <p>Скачайте расширение, откройте Telegram Web и получите первый отчёт за несколько минут.</p>
-      <a class="button button-primary button-large" href="downloads/telegram-channel-collector-standalone.zip" download>Скачать расширение <span>↓</span></a>
-    </section>
-
-    <section class="section faq-section">
-      <p class="kicker">[ FAQ ]</p>
-      <h2>Коротко о важном.</h2>
-      <div class="faq-grid">
-        <details><summary>Нужен ли Python или Docker?</summary><p>Нет. Аналитический движок написан на JavaScript и работает внутри расширения.</p></details>
-        <details><summary>Данные отправляются наружу?</summary><p>Нет. Расширение не использует сервер для сбора или анализа данных.</p></details>
-        <details><summary>Это определяет накрутку со 100% точностью?</summary><p>Нет. Fraud score — эвристический сигнал для первичной проверки, а не доказательство.</p></details>
-        <details><summary>Почему установка не в один клик?</summary><p>Браузеры запрещают обычную установку неподписанных расширений. Для установки в один клик нужна публикация в официальном магазине.</p></details>
-      </div>
+      <p class="kicker">[ READY TO GO ]</p>
+      <h2>See your channel<br>as data.</h2>
+      <p>Download the extension, open Telegram Web, and get your first report in minutes.</p>
+      <a class="button button-primary button-large" href="downloads/telegram-channel-collector-standalone.zip" download>Download extension <span>↓</span></a>
     </section>
   </main>
 
   <footer>
     <a class="brand" href="#top"><span class="brand-mark">↗</span><strong>Telegram Collector</strong></a>
-    <p>Локальная аналитика Telegram-каналов.</p>
-    <div><a data-repo-link href="#">GitHub</a><a href="downloads/telegram-channel-collector-standalone.zip" download>Скачать</a></div>
+    <p>Local analytics for Telegram channels.</p>
+    <div><a data-repo-link href="#">GitHub</a><a href="downloads/telegram-channel-collector-standalone.zip" download>Download</a></div>
   </footer>
 
   <script src="script.js"></script>

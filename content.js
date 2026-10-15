@@ -25,7 +25,7 @@ function parseCompactNumber(value) {
 
 function absorbElement(el) {
   const id = el.getAttribute('data-message-id') || el.getAttribute('data-id');
-  if (!id || collectedPosts.has(id)) return;
+  if (!id) return;
   const data = extractPostData(el);
   if (!data.text && !data.hasMedia && data.totalReactions === 0) return;
   collectedPosts.set(id, data);
@@ -36,11 +36,12 @@ const domObserver = new MutationObserver(mutations => {
   for (const mutation of mutations) {
     for (const node of mutation.addedNodes) {
       if (node.nodeType !== 1) continue;
-      if (node.matches('[data-message-id]')) {
-        absorbElement(node);
-      } else {
-        node.querySelectorAll('[data-message-id]').forEach(absorbElement);
-      }
+      const messages = new Set();
+      if (node.matches('[data-message-id]')) messages.add(node);
+      const parentMessage = node.closest('[data-message-id]');
+      if (parentMessage) messages.add(parentMessage);
+      node.querySelectorAll('[data-message-id]').forEach(message => messages.add(message));
+      messages.forEach(absorbElement);
     }
   }
 });
@@ -77,10 +78,25 @@ function extractPostData(messageEl) {
   // 4. REACTIONS
   const reactions = [];
   messageEl.querySelectorAll('.message-reaction').forEach(btn => {
-    const emojiImg = btn.querySelector('.ReactionStaticEmoji img.media');
-    const countSpan = btn.querySelector('.tgKbsVmz');
-    const emoji = emojiImg ? emojiImg.getAttribute('alt') : null;
-    const count = countSpan ? (parseCompactNumber(countSpan.innerText) || 0) : 0;
+    const emojiImg = btn.querySelector(
+      '.ReactionStaticEmoji img.media[alt], .ReactionStaticEmoji img[alt]:not([alt=""]), img.media[alt]:not([alt=""])'
+    );
+    const emoji = emojiImg?.getAttribute('alt')
+      || btn.getAttribute('aria-label')
+      || btn.getAttribute('title')
+      || null;
+
+    // Telegram changes generated CSS class names frequently. The counter is the
+    // direct text span in the reaction button, so read it by structure instead.
+    let count = 0;
+    const countSpans = btn.querySelectorAll(':scope > span');
+    for (const span of countSpans) {
+      const parsed = parseCompactNumber(span.textContent);
+      if (parsed !== null) {
+        count = parsed;
+        break;
+      }
+    }
     if (emoji || count) {
       reactions.push({ emoji: emoji || 'unknown', count: count || 0 });
     }
@@ -141,7 +157,7 @@ function collectAllPosts() {
 
     Array.from(elements).forEach(el => {
       const id = el.getAttribute('data-message-id') || el.getAttribute('data-id');
-      if (!id || collectedPosts.has(id)) return;
+      if (!id) return;
       const data = extractPostData(el);
       if (!data.text && !data.hasMedia && data.totalReactions === 0) return;
       collectedPosts.set(id, data);

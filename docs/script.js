@@ -14,5 +14,19 @@
       link.rel = 'noreferrer';
     }
   });
-})();
 
+  document.querySelectorAll('[data-copy-address]').forEach(button => {
+    const originalLabel = button.textContent;
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copyAddress);
+        button.textContent = 'Copied!';
+      } catch {
+        button.textContent = 'Copy failed';
+      }
+      window.setTimeout(() => {
+        button.textContent = originalLabel;
+      }, 1800);
+    });
+  });
+})();
