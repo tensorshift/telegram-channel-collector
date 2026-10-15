@@ -19,19 +19,19 @@
 
 | Поле | Откуда берётся |
 |---|---|
-| `text` | `.text-content` |
-| `views` | `.message-views` → атрибут `title` → regex `Views: N` |
+| `text` | `.text-content`, `.bubble-content .message`, `.message` |
+| `views` | `.message-views` или `.post-views` → `.time-inner[title]` → regex `Views: N` |
 | `shares` | Тот же элемент → regex `Shares: N` |
-| `time` | `.message-time` |
-| `reactions` | `.message-reaction` → emoji alt + счётчик |
+| `time` | `.message-time`, `.time-inner`, `.time` |
+| `reactions` | `.message-reaction` или `reaction-element` → emoji/doc id + счётчик |
 | `links` | `a.text-entity-link` → тип: `mention` если `@`, иначе `url` |
-| `hasMedia` | Проверяет наличие `img`, `video`, `.document`, `.photo` |
+| `hasMedia` | Проверяет медиа только внутри `.bubble-content`, исключая картинки реакций |
 | `forwardFrom` | `.forwarded-name` |
 | `hasPoll` | `.poll` |
-| `comments` | `.comments-button` → первое число в тексте |
+| `comments` | `.comments-button` или `replies-element` → число из текста/`aria-label` |
 
 ### Дедупликация:
-Каждый пост идентифицируется по `data-message-id`. Дубли пропускаются через `Set`.  
+Каждый пост идентифицируется по `data-message-id`, `data-mid`, `data-id` или `data-post`. Дубли пропускаются через `Map`.
 Пустые элементы (нет текста, нет медиа, нет реакций) тоже отбрасываются.
 
 ### Метаданные канала:

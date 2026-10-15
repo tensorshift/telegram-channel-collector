@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Telegram Channel Collector",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Collect and analyze Telegram channel posts locally, without servers or external services",
   "permissions": ["activeTab", "downloads", "scripting"],
   "host_permissions": ["https://web.telegram.org/*"],

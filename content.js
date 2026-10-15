@@ -31,6 +31,59 @@ function parseCompactNumber(value) {
   return Number.isFinite(parsed) ? Math.round(parsed * multiplier) : null;
 }
 
+function readReactionIdentity(reactionEl) {
+  try {
+    const reaction = reactionEl.reactionCount?.reaction;
+    if (reaction?._ === 'reactionEmoji' && reaction.emoticon) return reaction.emoticon;
+    if (reaction?._ === 'reactionCustomEmoji' && reaction.document_id) {
+      return `custom:${reaction.document_id}`;
+    }
+    if (reaction?._ === 'reactionPaid') return 'paid-star';
+  } catch {
+    // Custom-element state may be hidden from the extension's isolated world.
+  }
+
+  const emojiImg = reactionEl.querySelector(
+    '.ReactionStaticEmoji img.media[alt], .ReactionStaticEmoji img[alt]:not([alt=""]), img.media[alt]:not([alt=""])'
+  );
+  const accessibleName = emojiImg?.getAttribute('alt')
+    || reactionEl.getAttribute('aria-label')
+    || reactionEl.getAttribute('title');
+  if (accessibleName) return accessibleName;
+
+  // Telegram Web K leaves alt empty for custom emoji, but keeps a stable
+  // document id on the sticker wrapper. Retain it so different reactions do
+  // not collapse into one "unknown" bucket.
+  const sticker = reactionEl.querySelector('.reaction-sticker[data-doc-id], [data-doc-id]');
+  const documentId = sticker?.getAttribute('data-doc-id');
+  if (documentId) return `custom:${documentId}`;
+
+  return reactionEl.classList?.contains('is-paid') ? 'paid-star' : null;
+}
+
+function readReactionCount(reactionEl) {
+  try {
+    const modelCount = Number(reactionEl.reactionCount?.count);
+    if (Number.isFinite(modelCount) && modelCount >= 0) return Math.round(modelCount);
+  } catch {
+    // Fall back to the rendered counter below.
+  }
+
+  const counter = reactionEl.querySelector('.reaction-counter');
+  const explicitCount = parseCompactNumber(counter?.textContent);
+  if (explicitCount !== null) return explicitCount;
+
+  // Older Telegram markup uses a generated class for the counter, but the
+  // counter remains a direct text span inside the reaction button.
+  const countSpans = reactionEl.querySelectorAll(':scope > span');
+  for (const span of countSpans) {
+    const parsed = parseCompactNumber(span.textContent);
+    if (parsed !== null) return parsed;
+  }
+
+  return 0;
+}
+
 function absorbElement(el) {
   const id = getMessageId(el);
   if (!id) return;
@@ -79,9 +132,9 @@ function extractPostData(messageEl) {
       || viewsEl.innerText
       || viewsEl.textContent
       || '';
-    const viewsMatch = viewsText.match(/Views:\s*([\d,.]+\s*[KMB]?)/i);
+    const viewsMatch = viewsText.match(/Views:\s*([\d\s\u00a0,.]+(?:[KMB\u041a\u041c])?)/i);
     if (viewsMatch) views = parseCompactNumber(viewsMatch[1]);
-    const sharesMatch = viewsText.match(/Shares:\s*([\d,.]+\s*[KMB]?)/i);
+    const sharesMatch = viewsText.match(/Shares:\s*([\d\s\u00a0,.]+(?:[KMB\u041a\u041c])?)/i);
     if (sharesMatch) shares = parseCompactNumber(sharesMatch[1]);
     if (views === null) {
       views = parseCompactNumber(viewsEl.innerText || viewsEl.textContent);
@@ -99,29 +152,13 @@ function extractPostData(messageEl) {
 
   // 4. REACTIONS
   const reactions = [];
-  messageEl.querySelectorAll('.message-reaction').forEach(btn => {
-    const emojiImg = btn.querySelector(
-      '.ReactionStaticEmoji img.media[alt], .ReactionStaticEmoji img[alt]:not([alt=""]), img.media[alt]:not([alt=""])'
-    );
-    const emoji = emojiImg?.getAttribute('alt')
-      || btn.getAttribute('aria-label')
-      || btn.getAttribute('title')
-      || null;
+  messageEl.querySelectorAll('.message-reaction, reaction-element').forEach(reactionEl => {
+    const emoji = readReactionIdentity(reactionEl);
+    const count = readReactionCount(reactionEl);
 
-    // Telegram changes generated CSS class names frequently. The counter is the
-    // direct text span in the reaction button, so read it by structure instead.
-    let count = 0;
-    const countSpans = btn.querySelectorAll(':scope > span');
-    for (const span of countSpans) {
-      const parsed = parseCompactNumber(span.textContent);
-      if (parsed !== null) {
-        count = parsed;
-        break;
-      }
-    }
-    if (emoji || count) {
-      reactions.push({ emoji: emoji || 'unknown', count: count || 0 });
-    }
+    // A paid-star chip currently exposes no count in Telegram's DOM. Omitting
+    // that chip is more accurate than inventing a value of one.
+    if (count > 0) reactions.push({ emoji: emoji || 'unknown', count });
   });
 
   // 5. LINKS
@@ -139,7 +176,10 @@ function extractPostData(messageEl) {
   });
 
   // 6. MEDIA
-  const hasMedia = !!messageEl.querySelector('img:not(.emoji), video, .document, .photo');
+  const hasMedia = !!messageEl.querySelector(
+    '.bubble-content .attachment, .bubble-content .media-photo, .bubble-content video, '
+    + '.bubble-content .document, .bubble-content .audio, .bubble-content .poll'
+  );
 
   // 7. FORWARD
   let forwardFrom = null;
@@ -151,13 +191,20 @@ function extractPostData(messageEl) {
 
   // 9. COMMENTS
   let comments = null;
-  const commentsEl = messageEl.querySelector('.comments-button');
+  const commentsEl = messageEl.querySelector('.comments-button, replies-element.replies, replies-element[aria-label]');
   if (commentsEl) {
-    comments = parseCompactNumber(commentsEl.innerText);
+    const commentsText = commentsEl.getAttribute('aria-label')
+      || commentsEl.innerText
+      || commentsEl.textContent
+      || '';
+    comments = parseCompactNumber(commentsText) ?? 0;
   }
+
+  const timestampValue = Number.parseInt(messageEl.getAttribute('data-timestamp'), 10);
 
   return {
     id: msgId,
+    timestamp: Number.isFinite(timestampValue) ? timestampValue : null,
     text,
     views,
     shares,
@@ -190,42 +237,42 @@ function collectAllPosts() {
 }
 
 function collectChannelMetadata() {
-  // Channel name — new K interface first, then legacy
-  let channelName = '';
-  const nameSelectors = [
-    '.ChatInfo .info .fullName',
-    '.ChatInfo h3',
-    '.chat-info .title',
-    '.tgme_page_title span',
-    '.channel-info .title',
-    '.chat-title',
-    '.peer-title',
-  ];
-  for (const sel of nameSelectors) {
-    const el = document.querySelector(sel);
-    if (el && el.innerText.trim()) { channelName = el.innerText.trim(); break; }
-  }
+  // Scope the lookup to the header of the open chat. A global `.peer-title`
+  // also matches names in the dialogs sidebar and can return the wrong person.
+  const chatInfo = document.querySelector('#column-center .chat-info-container')
+    || document.querySelector('.chat-info-container');
 
-  // Subscribers — new K interface first, then legacy
-  let subscribers = '';
-  const subSelectors = [
-    '.ChatInfo .group-status',
-    '.ChatInfo .status',
-    '.tgme_page_extra',
-  ];
-  for (const sel of subSelectors) {
+  let channelName = '';
+  let channelNameEl = chatInfo?.querySelector('.chat-info .user-title .peer-title, .user-title .peer-title') || null;
+  const nameSelectors = ['.ChatInfo .info .fullName', '.ChatInfo h3', '.tgme_page_title span', '.channel-info .title'];
+  for (const sel of nameSelectors) {
+    if (channelNameEl) break;
     const el = document.querySelector(sel);
-    if (el && el.innerText.trim()) { subscribers = el.innerText.trim(); break; }
+    if (el && el.innerText.trim()) channelNameEl = el;
   }
+  if (channelNameEl?.innerText.trim()) channelName = channelNameEl.innerText.trim();
+
+  let subscribers = '';
+  let subscribersEl = chatInfo?.querySelector('.chat-info .bottom .info, .bottom .info') || null;
+  const subSelectors = ['.ChatInfo .group-status', '.ChatInfo .status', '.tgme_page_extra'];
+  for (const sel of subSelectors) {
+    if (subscribersEl) break;
+    const el = document.querySelector(sel);
+    if (el && el.innerText.trim()) subscribersEl = el;
+  }
+  if (subscribersEl?.innerText.trim()) subscribers = subscribersEl.innerText.trim();
 
   const descEl   = document.querySelector('.tgme_page_description');
   const urlParts = window.location.href.split('/');
+  const peerId = channelNameEl?.getAttribute('data-peer-id')
+    || chatInfo?.querySelector('[data-peer-id]')?.getAttribute('data-peer-id')
+    || '';
 
   return {
     channelName,
     subscribers,
     description: descEl ? descEl.innerText.trim() : '',
-    channelId: urlParts[urlParts.length - 1] || '',
+    channelId: peerId || urlParts[urlParts.length - 1] || '',
     url: window.location.href
   };
 }
