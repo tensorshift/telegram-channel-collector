@@ -62,7 +62,7 @@ const context = {
 };
 
 vm.createContext(context);
-vm.runInContext(`${contentScript}\nthis.__extractPostData = extractPostData;\nthis.__absorbElement = absorbElement;\nthis.__collectAllPosts = collectAllPosts;\nthis.__collectChannelMetadata = collectChannelMetadata;\nthis.__getCollectedPost = id => collectedPosts.get(id);`, context);
+vm.runInContext(`${contentScript}\nthis.__extractPostData = extractPostData;\nthis.__absorbElement = absorbElement;\nthis.__collectAllPosts = collectAllPosts;\nthis.__collectChannelMetadata = collectChannelMetadata;\nthis.__calculateCollectionStats = calculateCollectionStats;\nthis.__convertToCSV = convertToCSV;\nthis.__getCollectedPost = id => collectedPosts.get(id);`, context);
 
 reactionCount = '1';
 let post = context.__extractPostData(messageElement);
@@ -148,7 +148,19 @@ const modernMessage = {
   },
 };
 
-context.__messageElements = [modernMessage];
+const sponsoredMessage = {
+  getAttribute(name) {
+    return name === 'data-mid' ? '-1' : null;
+  },
+  querySelector(selector) {
+    if (selector.includes('.bubble-content .message')) return { innerText: 'Sponsored message' };
+    if (selector.includes('.bubble-content .attachment')) return {};
+    return null;
+  },
+  querySelectorAll() { return []; },
+};
+
+context.__messageElements = [modernMessage, sponsoredMessage];
 vm.runInContext('collectedPosts.clear(); isCollectionMode = true;', context);
 const modernPosts = context.__collectAllPosts();
 assert.equal(modernPosts.length, 1);
@@ -168,6 +180,22 @@ assert.deepEqual(
 assert.equal(modernPosts[0].totalReactions, 6);
 assert.equal(modernPosts[0].comments, 1);
 assert.equal(modernPosts[0].hasMedia, true);
+const collectionStats = context.__calculateCollectionStats(modernPosts);
+assert.equal(collectionStats.avgViews, 1555);
+assert.equal(collectionStats.postsWithViews, 1);
+assert.equal(collectionStats.postsWithReactions, 1);
+assert.equal(collectionStats.totalReactions, 6);
+assert.deepEqual(
+  JSON.parse(JSON.stringify(collectionStats.reactionDistribution)),
+  [
+    { reaction: '🔥', count: 4 },
+    { reaction: 'custom:5100483636361167223', count: 2 },
+  ],
+);
+const csv = context.__convertToCSV(modernPosts);
+assert.match(csv, /timestamp/);
+assert.match(csv, /reactions/);
+assert.match(csv, /🔥:4/);
 
 const channelTitle = {
   innerText: 'Работа в ставках | Betting, Gambling, IGaming вакансии',

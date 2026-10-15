@@ -9,6 +9,10 @@ function getMessageId(el) {
     || el.getAttribute('data-post');
 }
 
+function isCollectableMessageId(id) {
+  return !!id && !/^-\d+$/.test(String(id));
+}
+
 function parseCompactNumber(value) {
   if (value == null) return null;
   const normalized = String(value).trim().replace(/[\s\u00a0]/g, '');
@@ -32,6 +36,9 @@ function parseCompactNumber(value) {
 }
 
 function readReactionIdentity(reactionEl) {
+  const bridgedIdentity = reactionEl.getAttribute('data-tgc-reaction');
+  if (bridgedIdentity) return bridgedIdentity;
+
   try {
     const reaction = reactionEl.reactionCount?.reaction;
     if (reaction?._ === 'reactionEmoji' && reaction.emoticon) return reaction.emoticon;
@@ -62,6 +69,12 @@ function readReactionIdentity(reactionEl) {
 }
 
 function readReactionCount(reactionEl) {
+  const bridgedCount = reactionEl.getAttribute('data-tgc-count');
+  if (bridgedCount !== null) {
+    const parsed = parseCompactNumber(bridgedCount);
+    if (parsed !== null) return parsed;
+  }
+
   try {
     const modelCount = Number(reactionEl.reactionCount?.count);
     if (Number.isFinite(modelCount) && modelCount >= 0) return Math.round(modelCount);
@@ -86,7 +99,7 @@ function readReactionCount(reactionEl) {
 
 function absorbElement(el) {
   const id = getMessageId(el);
-  if (!id) return;
+  if (!isCollectableMessageId(id)) return;
   const data = extractPostData(el);
   if (!data.text && !data.hasMedia && data.totalReactions === 0) return;
   collectedPosts.set(id, data);
@@ -225,7 +238,7 @@ function collectAllPosts() {
 
     Array.from(elements).forEach(el => {
       const id = getMessageId(el);
-      if (!id) return;
+      if (!isCollectableMessageId(id)) return;
       const data = extractPostData(el);
       if (!data.text && !data.hasMedia && data.totalReactions === 0) return;
       collectedPosts.set(id, data);
@@ -278,19 +291,46 @@ function collectChannelMetadata() {
 }
 
 function convertToCSV(posts) {
-  const headers = ['index', 'text', 'views', 'shares', 'time', 'totalReactions', 'hasMedia', 'forwardFrom', 'comments'];
+  const headers = ['index', 'timestamp', 'text', 'views', 'shares', 'time', 'totalReactions', 'reactions', 'hasMedia', 'forwardFrom', 'comments'];
   const rows = posts.map(post => [
     post.index,
+    post.timestamp ?? '',
     `"${(post.text || '').replace(/\n/g, ' ').replace(/"/g, '""').substring(0, 500)}"`,
     post.views ?? '',
     post.shares ?? '',
     post.time || '',
     post.totalReactions || '',
+    `"${(post.reactions || []).map(reaction => `${reaction.emoji}:${reaction.count}`).join(' | ').replace(/"/g, '""')}"`,
     post.hasMedia,
     post.forwardFrom || '',
     post.comments ?? ''
   ]);
   return [headers, ...rows].map(row => row.join(',')).join('\n');
+}
+
+function calculateCollectionStats(posts) {
+  const viewValues = posts.map(post => post.views).filter(Number.isFinite);
+  const reactionTotals = new Map();
+  for (const post of posts) {
+    for (const reaction of post.reactions || []) {
+      const name = reaction.emoji || 'unknown';
+      reactionTotals.set(name, (reactionTotals.get(name) || 0) + (Number(reaction.count) || 0));
+    }
+  }
+
+  return {
+    avgViews: viewValues.length
+      ? Math.round(viewValues.reduce((sum, value) => sum + value, 0) / viewValues.length)
+      : 0,
+    postsWithViews: viewValues.length,
+    postsWithReactions: posts.filter(post => post.totalReactions > 0).length,
+    totalReactions: posts.reduce((sum, post) => sum + (post.totalReactions || 0), 0),
+    totalShares: posts.reduce((sum, post) => sum + (post.shares || 0), 0),
+    postsWithMedia: posts.filter(post => post.hasMedia).length,
+    reactionDistribution: [...reactionTotals.entries()]
+      .sort((left, right) => right[1] - left[1])
+      .map(([reaction, count]) => ({ reaction, count })),
+  };
 }
 
 if (globalThis.__telegramCollectorMessageHandler) {
@@ -319,18 +359,13 @@ var telegramCollectorMessageHandler = (request, sender, sendResponse) => {
     const posts = collectAllPosts();
     isCollectionMode = false;
     const metadata = collectChannelMetadata();
-    const total = posts.reduce((sum, p) => sum + (p.views || 0), 0);
 
     const outputData = {
       timestamp: new Date().toISOString(),
       metadata,
       posts,
       totalPosts: posts.length,
-      stats: {
-        avgViews: posts.length ? Math.round(total / posts.length) : 0,
-        totalReactions: posts.reduce((sum, p) => sum + (p.totalReactions || 0), 0),
-        postsWithMedia: posts.filter(p => p.hasMedia).length
-      },
+      stats: calculateCollectionStats(posts),
       csv: convertToCSV(posts)
     };
 

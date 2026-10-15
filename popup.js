@@ -101,8 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
       rEngage:  'Engagement',   rReact:   'Reactions',
       rSched:   'Schedule',     rContent: 'Content',
       sMean: 'Mean', sMedian: 'Median', sCv: 'CV', sVerdict: 'Verdict',
-      sER: 'Eng. Rate', sShares: 'Shares', sDiversity: 'Types', sEntropy: 'Entropy',
-      sMedia: 'Media', sForward: 'Forwarded', sLinks: 'Links',
+      sER: 'Eng. Rate', sShares: 'Share Rate', sDiversity: 'Types', sEntropy: 'Entropy',
+      sTotalReact: 'Total Reactions', sAvgReact: 'Avg / Post', sReactionCount: 'Count', customReaction: 'Custom reaction',
+      sMin: 'Minimum', sMax: 'Maximum', sStdDev: 'Std. Deviation', sOutliers: 'Outliers',
+      sCommentRate: 'Comment Rate', sAvgShares: 'Avg Shares',
+      sMedia: 'Media', sForward: 'Forwarded', sPolls: 'Polls', sLinks: 'Links',
       vSuspicious: '⚠️ Bot-like', vStable: '✅ Stable', vNormal: '🔄 Normal', vUnstable: '📊 Volatile',
       regCron: '🤖 Scheduled', regPlanned: '📅 Planned', regOrganic: '🌱 Organic', regUnknown: '❓',
       authOrganic: '✅ Organic', authNeutral: '➖ Neutral', authSuspicious: '⚠️ Suspicious',
@@ -169,8 +172,11 @@ document.addEventListener('DOMContentLoaded', () => {
       rEngage:  'Вовлечённость',  rReact:   'Реакции',
       rSched:   'Расписание',     rContent: 'Контент',
       sMean: 'Среднее', sMedian: 'Медиана', sCv: 'CV', sVerdict: 'Вердикт',
-      sER: 'Eng. Rate', sShares: 'Репосты', sDiversity: 'Типов', sEntropy: 'Энтропия',
-      sMedia: 'Медиа', sForward: 'Пересланных', sLinks: 'Ссылок',
+      sER: 'Eng. Rate', sShares: 'Доля репостов', sDiversity: 'Типов', sEntropy: 'Энтропия',
+      sTotalReact: 'Всего реакций', sAvgReact: 'Среднее / пост', sReactionCount: 'Количество', customReaction: 'Кастомная реакция',
+      sMin: 'Минимум', sMax: 'Максимум', sStdDev: 'Ст. отклонение', sOutliers: 'Выбросы',
+      sCommentRate: 'Доля комментариев', sAvgShares: 'Среднее репостов',
+      sMedia: 'Медиа', sForward: 'Пересланных', sPolls: 'Опросов', sLinks: 'Ссылок',
       vSuspicious: '⚠️ Накрутка', vStable: '✅ Стабильно', vNormal: '🔄 Норма', vUnstable: '📊 Волатильно',
       regCron: '🤖 Автопостинг', regPlanned: '📅 Плановый', regOrganic: '🌱 Органичный', regUnknown: '❓',
       authOrganic: '✅ Органично', authNeutral: '➖ Нейтрально', authSuspicious: '⚠️ Подозрительно',
@@ -490,6 +496,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const react = r.reactions;
     const sched = r.schedule;
     const cont  = r.content;
+    const escapeInline = value => String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
 
     // ── Fraud score ring ──
     const riskColorMap = {
@@ -591,13 +602,19 @@ document.addEventListener('DOMContentLoaded', () => {
       : (authLabelMap[react.authenticity] || react.authenticity);
 
     document.getElementById('reactionsBars').innerHTML =
+      `<div class="reaction-summary">
+        <div><span>${t('sTotalReact')}</span><strong>${react.total.toLocaleString()}</strong></div>
+        <div><span>${t('sAvgReact')}</span><strong>${eng.avg_reactions.toLocaleString()}</strong></div>
+        <div><span>${t('sDiversity')}</span><strong>${react.diversity}</strong></div>
+        <div><span>${t('sEntropy')}</span><strong>${react.avg_entropy}</strong></div>
+      </div>` +
       react.top5.map(rx => `
-        <div class="react-row">
-          <div class="react-emoji">${rx.symbol || '●'}</div>
+        <div class="react-row" title="${escapeInline(rx.name)}">
+          <div class="react-emoji">${escapeInline(rx.symbol || '●')}</div>
           <div class="react-bar-wrap">
             <div class="react-bar-fill" style="width:${rx.pct}%"></div>
           </div>
-          <div class="react-pct">${rx.pct}%</div>
+          <div class="react-pct">${rx.count.toLocaleString()} · ${rx.pct}%</div>
         </div>
       `).join('') +
       `<div style="font-size:10.5px;color:${authColor};margin-top:6px" data-tip="authLabel">${authLabel}</div>`;
@@ -693,13 +710,33 @@ document.addEventListener('DOMContentLoaded', () => {
       return `<div class="hb-wrap" title="${h}:00 — ${cnt}"><div class="hb${pk?' pk':''}" style="height:${Math.max(hPct,cnt>0?5:0)}%"></div></div>`;
     }).join('');
 
-    const rxBars = react.top5.map(rx =>
-      `<div class="rb-row"><div class="rb-emoji">${rx.symbol||'●'}</div><div class="rb-wrap"><div class="rb-fill" style="width:${rx.pct}%"></div></div><div class="rb-pct">${rx.pct}%</div></div>`
-    ).join('');
+    const reactionDistribution = react.distribution || react.top5;
+    const rxBars = reactionDistribution.map(rx => {
+      const fallbackLabel = rx.name.startsWith('custom:')
+        ? `${t('customReaction')} #${rx.name.slice(-6)}`
+        : rx.name;
+      const label = rx.symbol && rx.name === rx.symbol ? '' : fallbackLabel;
+      return `<div class="rb-row" title="${esc(rx.name)}">
+        <div class="rb-emoji">${esc(rx.symbol||'●')}</div>
+        <div class="rb-name">${esc(label)}</div>
+        <div class="rb-wrap"><div class="rb-fill" style="width:${rx.pct}%"></div></div>
+        <div class="rb-count">${rx.count.toLocaleString()}</div>
+        <div class="rb-pct">${rx.pct}%</div>
+      </div>`;
+    }).join('');
+
+    const rxSummary = `
+      <div class="sg reaction-sg">
+        <div class="sg-item"><div class="sg-lbl">${t('sTotalReact')}</div><div class="sg-val">${react.total.toLocaleString()}</div></div>
+        <div class="sg-item"><div class="sg-lbl">${t('sAvgReact')}</div><div class="sg-val">${eng.avg_reactions.toLocaleString()}</div></div>
+        <div class="sg-item"><div class="sg-lbl">${t('sDiversity')}</div><div class="sg-val">${react.diversity}</div></div>
+        <div class="sg-item"><div class="sg-lbl">${t('sEntropy')}</div><div class="sg-val">${react.avg_entropy}</div></div>
+      </div>`;
 
     const ctBars = [
       { label:t('sMedia'),   pct:cont.media_pct },
       { label:t('sForward'), pct:cont.forwarded_pct },
+      { label:t('sPolls'),   pct:cont.polls_pct },
       { label:t('sLinks'),   pct:cont.links_pct },
     ].map(item =>
       `<div class="cb-row"><div class="cb-lbl">${esc(item.label)}</div><div class="cb-track"><div class="cb-fill" style="width:${item.pct}%"></div></div><div class="cb-pct">${item.pct}%</div></div>`
@@ -766,9 +803,12 @@ body{background:#0d0d16;color:#e8e8e8;font-family:'Bahnschrift','Trebuchet MS','
 .sg-badge{font-size:11px;padding:3px 7px;border-radius:4px;display:inline-block;margin-top:3px;font-weight:700;background:${cvColor}22;color:${cvColor}}
 .rb-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
 .rb-emoji{font-size:14px;width:22px;text-align:center;flex-shrink:0}
+.rb-name{font-size:10px;color:rgba(255,255,255,.48);width:116px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rb-wrap{flex:1;height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden}
 .rb-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#4a9eff,#9b59b6)}
+.rb-count{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);width:46px;text-align:right;flex-shrink:0}
 .rb-pct{font-size:10px;color:rgba(255,255,255,0.4);width:32px;text-align:right;flex-shrink:0}
+.reaction-sg{margin-bottom:14px}
 .auth{font-size:10.5px;margin-top:8px;color:${authColor}}
 .sm{font-size:11px;color:rgba(255,255,255,0.48);margin-bottom:10px}
 .hchart{display:flex;align-items:flex-end;gap:2px;height:64px;margin-top:4px}
@@ -806,21 +846,28 @@ footer{text-align:center;margin-top:22px;font-size:10px;color:rgba(255,255,255,0
   <div class="sg">
     <div class="sg-item"><div class="sg-lbl">${t('sMean')}</div><div class="sg-val">${views.mean.toLocaleString()}</div></div>
     <div class="sg-item"><div class="sg-lbl">${t('sMedian')}</div><div class="sg-val">${views.median.toLocaleString()}</div></div>
+    <div class="sg-item"><div class="sg-lbl">${t('sMin')}</div><div class="sg-val">${views.min.toLocaleString()}</div></div>
+    <div class="sg-item"><div class="sg-lbl">${t('sMax')}</div><div class="sg-val">${views.max.toLocaleString()}</div></div>
+    <div class="sg-item"><div class="sg-lbl">${t('sStdDev')}</div><div class="sg-val">${views.std_dev.toLocaleString()}</div></div>
     <div class="sg-item"><div class="sg-lbl">${t('sCv')}</div><div class="sg-val">${views.cv}</div></div>
+    <div class="sg-item"><div class="sg-lbl">${t('sOutliers')}</div><div class="sg-val">${views.outlier_count}</div></div>
     <div class="sg-item"><div class="sg-lbl">${t('sVerdict')}</div><span class="sg-badge">${cvLabelMap2[views.verdict]||views.verdict}</span></div>
   </div>
 </div>
-<div class="card">
+<div class="card full">
   <div class="ch">💬 ${t('rEngage')}</div>
   <div class="sg">
     <div class="sg-item"><div class="sg-lbl">${t('sER')}</div><div class="sg-val">${eng.engagement_rate}%</div></div>
     <div class="sg-item"><div class="sg-lbl">${t('sShares')}</div><div class="sg-val">${eng.share_rate}%</div></div>
-    <div class="sg-item"><div class="sg-lbl">${t('sDiversity')}</div><div class="sg-val">${react.diversity}</div></div>
+    <div class="sg-item"><div class="sg-lbl">${t('sCommentRate')}</div><div class="sg-val">${eng.comment_rate == null ? '—' : `${eng.comment_rate}%`}</div></div>
+    <div class="sg-item"><div class="sg-lbl">${t('sAvgReact')}</div><div class="sg-val">${eng.avg_reactions.toLocaleString()}</div></div>
+    <div class="sg-item"><div class="sg-lbl">${t('sAvgShares')}</div><div class="sg-val">${eng.avg_shares.toLocaleString()}</div></div>
     ${vsRow}
   </div>
 </div>
-<div class="card">
+<div class="card full">
   <div class="ch">😊 ${t('rReact')}</div>
+  ${rxSummary}
   ${rxBars}
   <div class="auth">${authLabelMap2[react.authenticity]||react.authenticity}</div>
 </div>
@@ -881,6 +928,17 @@ footer{text-align:center;margin-top:22px;font-size:10px;color:rgba(255,255,255,0
       return false;
     }
     currentTabId = tab.id;
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['page-bridge.js'],
+        world: 'MAIN',
+      });
+    } catch (bridgeError) {
+      // DOM counters still work as a fallback; only the visible emoji name may
+      // be unavailable on older Chromium builds.
+      console.warn('Telegram reaction bridge unavailable', bridgeError);
+    }
     try {
       return await chrome.tabs.sendMessage(tab.id, { action });
     } catch (firstError) {

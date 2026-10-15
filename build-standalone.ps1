@@ -11,6 +11,7 @@ $extensionFiles = @(
   'popup.js',
   'analyzer.js',
   'content.js',
+  'page-bridge.js',
   'background.js',
   'icon16.png',
   'icon48.png',

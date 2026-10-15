@@ -192,20 +192,21 @@
     if (total > 0 && avgEntropy > 1.0 && diversity >= 3) authenticity = 'organic';
     else if (total > 0 && (avgEntropy > 0.5 || diversity >= 3)) authenticity = 'neutral';
 
-    const top5 = [...totals.entries()]
+    const distribution = [...totals.entries()]
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
       .map(([name, count]) => ({
         name,
         symbol: EMOJI_MAP[name] || (/\p{Extended_Pictographic}/u.test(name) ? name : ''),
         count,
         pct: total > 0 ? round(count / total * 100) : 0,
       }));
+    const top5 = distribution.slice(0, 5);
 
     return {
       diversity,
       avg_entropy: round(avgEntropy, 2),
       top5,
+      distribution,
       authenticity,
       total,
     };

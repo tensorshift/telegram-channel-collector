@@ -23,7 +23,7 @@
 | `views` | `.message-views` или `.post-views` → `.time-inner[title]` → regex `Views: N` |
 | `shares` | Тот же элемент → regex `Shares: N` |
 | `time` | `.message-time`, `.time-inner`, `.time` |
-| `reactions` | `.message-reaction` или `reaction-element` → emoji/doc id + счётчик |
+| `reactions` | `.message-reaction` или `reaction-element` → emoji + счётчик; `page-bridge.js` переносит публичную модель реакции из MAIN world в безопасные `data-tgc-*` атрибуты, DOM/doc id остаются fallback |
 | `links` | `a.text-entity-link` → тип: `mention` если `@`, иначе `url` |
 | `hasMedia` | Проверяет медиа только внутри `.bubble-content`, исключая картинки реакций |
 | `forwardFrom` | `.forwarded-name` |

@@ -46,6 +46,7 @@ popup.html       — интерфейс
 popup.js         — логика интерфейса и экспорта
 analyzer.js      — локальный аналитический движок
 content.js       — сбор данных из Telegram Web
+page-bridge.js   — чтение публичных счётчиков и символов реакций из компонентов Telegram Web
 background.js    — скачивание JSON и HTML-отчётов
 assets/fonts/     — Pixelify Sans и текст лицензии OFL
 icon*.png        — иконки
